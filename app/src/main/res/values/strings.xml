@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">NeuroSkyDemo</string>
+    <string name="action_settings">Settings</string>
+    <string name="connected">connected</string>
+    <string name="connecting">connecting...</string>
+    <string name="disconnected">disconnected</string>
+</resources>
