@@ -165,14 +165,19 @@ public class SensingActivity extends Activity {
                         case TGDevice.STATE_IDLE:
                             break;
                         case TGDevice.STATE_CONNECTING:
-                        case TGDevice.STATE_CONNECTED:
-                        case TGDevice.STATE_NOT_FOUND:
-                        case TGDevice.STATE_NOT_PAIRED:
-                        case TGDevice.STATE_DISCONNECTED:
                             Message msg2 = new Message();
                             msg2.what = msg.what;
                             msg2.arg1 = msg.arg1;
                             handler.sendMessage(msg2);
+                            // for git test
+                        case TGDevice.STATE_CONNECTED:
+                        case TGDevice.STATE_NOT_FOUND:
+                        case TGDevice.STATE_NOT_PAIRED:
+                        case TGDevice.STATE_DISCONNECTED:
+                            Message msg3 = new Message();
+                            msg3.what = msg.what;
+                            msg3.arg1 = msg.arg1;
+                            handler.sendMessage(msg3);
                     }
                     break;
                 case TGDevice.MSG_POOR_SIGNAL:
