@@ -24,10 +24,9 @@ public class SensingActivity extends Activity {
     final boolean rawEnabled = true;
 
 
-
     TextView state, att, med;
     Button bt;
-    ProgressBar p1,p2;
+    ProgressBar p1, p2;
 
     DB_neurosky db;
     ContentValues cv;
@@ -44,41 +43,38 @@ public class SensingActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_neurosensing);
-        state = (TextView)findViewById(R.id.textView2);
-        att = (TextView)findViewById(R.id.textView5);
-        med = (TextView)findViewById(R.id.textView6);
-        bt = (Button)findViewById(R.id.button);
+        state = (TextView) findViewById(R.id.textView2);
+        att = (TextView) findViewById(R.id.textView5);
+        med = (TextView) findViewById(R.id.textView6);
+        bt = (Button) findViewById(R.id.button);
 
-        p1 = (ProgressBar)findViewById(R.id.progressBar);
-        p2 = (ProgressBar)findViewById(R.id.progressBar2);
+        p1 = (ProgressBar) findViewById(R.id.progressBar);
+        p2 = (ProgressBar) findViewById(R.id.progressBar2);
 
         db = new DB_neurosky(this);
 
 
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if(bluetoothAdapter == null) {
+        if (bluetoothAdapter == null) {
             // Alert user that Bluetooth is not available
             Toast.makeText(this, "Bluetooth not available", Toast.LENGTH_LONG).show();
             finish();
             return;
-        }else {
-            mThread =  new HandlerThread("neurosky");
+        } else {
+            mThread = new HandlerThread("neurosky");
             mThread.start();
             mThreadHandler = new SaveHandler(mThread.getLooper());
-        	/* create the TGDevice */
+            /* create the TGDevice */
             tgDevice = new TGDevice(bluetoothAdapter, mThreadHandler);
-            if(tgDevice.getState() != TGDevice.STATE_CONNECTING && tgDevice.getState() != TGDevice.STATE_CONNECTED) {
+            if (tgDevice.getState() != TGDevice.STATE_CONNECTING && tgDevice.getState() != TGDevice.STATE_CONNECTED) {
                 tgDevice.connect(rawEnabled);
                 db = new DB_neurosky(this);
                 db.openDBWriteable();
-            }
-            else {
+            } else {
                 Toast.makeText(this, "NeuroSkey MindWave didn't start", Toast.LENGTH_LONG).show();
             }
         }
     }
-
-
 
 
     @Override
@@ -102,7 +98,7 @@ public class SensingActivity extends Activity {
 
 
     public void Stop(View view) {
-        if(tgDevice.getState() == TGDevice.STATE_CONNECTING || tgDevice.getState() == TGDevice.STATE_CONNECTED)
+        if (tgDevice.getState() == TGDevice.STATE_CONNECTING || tgDevice.getState() == TGDevice.STATE_CONNECTED)
             tgDevice.close();
         //tgDevice.ena
     }
@@ -110,7 +106,7 @@ public class SensingActivity extends Activity {
     private final Handler handler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            Utils.logThread();
+            //Utils.logThread();
             switch (msg.what) {
                 case TGDevice.MSG_STATE_CHANGE:
                     switch (msg.arg1) {
@@ -146,19 +142,21 @@ public class SensingActivity extends Activity {
 
 
     class SaveHandler extends Handler {
-       private final String TAG = this.getClass().getSimpleName();
+        private final String TAG = this.getClass().getSimpleName();
+
         public SaveHandler(android.os.Looper looper) {
-            super (looper);
+            super(looper);
         }
 
-    //負責儲存到DB，希望是背景執行
-    //private final Handler mThreadHandler = new Handler(mThread.getLooper()) {
+        //負責儲存到DB，希望是背景執行
+        //private final Handler mThreadHandler = new Handler(mThread.getLooper()) {
+
         /**
          * Handles messages from TGDevice
          */
         @Override
         public void handleMessage(Message msg) {
-            Utils.logThread();
+           // Utils.logThread();
             switch (msg.what) {
                 case TGDevice.MSG_STATE_CHANGE:
                     switch (msg.arg1) {
@@ -166,6 +164,7 @@ public class SensingActivity extends Activity {
                             break;
                         case TGDevice.STATE_CONNECTING:
                         case TGDevice.STATE_CONNECTED:
+                            tgDevice.start();
                         case TGDevice.STATE_NOT_FOUND:
                         case TGDevice.STATE_NOT_PAIRED:
                         case TGDevice.STATE_DISCONNECTED:
@@ -182,7 +181,7 @@ public class SensingActivity extends Activity {
                 case TGDevice.MSG_RAW_DATA:
                     cv = new ContentValues(2);
                     cv.put(db.KEY_RAW, msg.arg1);
-                    cv.put(db.KEY_TIMESTAMP, System.currentTimeMillis());
+                    cv.put(db.KEY_TIMESTAMP, msg.getWhen());
                     db.insert(DB_neurosky.RAW_TABLE, cv);
                     //raw1 = msg.arg1;
                     //tv.append("Got raw: " + msg.arg1 + "\n");
@@ -192,7 +191,7 @@ public class SensingActivity extends Activity {
                 case TGDevice.MSG_ATTENTION:
                     cv = new ContentValues(2);
                     cv.put(db.KEY_ATTENTION, msg.arg1);
-                    cv.put(db.KEY_TIMESTAMP, System.currentTimeMillis());
+                    cv.put(db.KEY_TIMESTAMP, msg.getWhen());
                     db.insert(DB_neurosky.ATT_TABLE, cv);
                     Message msg2 = new Message();
                     msg2.what = msg.what;
@@ -204,7 +203,7 @@ public class SensingActivity extends Activity {
                 case TGDevice.MSG_MEDITATION:
                     cv = new ContentValues(2);
                     cv.put(db.KEY_MEDITATION, msg.arg1);
-                    cv.put(db.KEY_TIMESTAMP, System.currentTimeMillis());
+                    cv.put(db.KEY_TIMESTAMP, msg.getWhen());
                     db.insert(DB_neurosky.MED_TABLE, cv);
                     Message msg3 = new Message();
                     msg3.what = msg.what;
@@ -214,7 +213,7 @@ public class SensingActivity extends Activity {
                 case TGDevice.MSG_BLINK:
                     cv = new ContentValues(2);
                     cv.put(db.KEY_BLANK, msg.arg1);
-                    cv.put(db.KEY_TIMESTAMP, System.currentTimeMillis());
+                    cv.put(db.KEY_TIMESTAMP, msg.getWhen());
                     db.insert(DB_neurosky.BLANK_TABLE, cv);
                     //tv.append("Blink: " + msg.arg1 + "\n");
                     break;
@@ -241,7 +240,6 @@ public class SensingActivity extends Activity {
             }
         }
     }
-
 
 
 }

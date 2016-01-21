@@ -183,7 +183,7 @@ public class DB_neurosky {
 		// SQLiteDatabase.CONFLICT_IGNORE); //這個指令需要And 2.2以上版本
 		synchronized (LOCK) {
 			db.insertOrThrow(TABLE, null, values); // 如果插入錯誤會丟一個例外出來，暫不處理。
-			Log.d(TAG, "insert data into db");
+			//Log.d(TAG, "insert data into db");
 		}
 	}
 
